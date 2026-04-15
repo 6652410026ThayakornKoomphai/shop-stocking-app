@@ -118,6 +118,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     if (authError) return { error: authError };
 
+    // Supabase returns 200 with empty identities for repeated signups
+    if (
+      authData.user &&
+      authData.user.identities &&
+      authData.user.identities.length === 0
+    ) {
+      // Try to clean up stale auth user (deleted from public tables but still in auth.users)
+      const { data: cleaned } = await supabase.rpc('cleanup_stale_auth_user', {
+        target_email: email,
+      });
+
+      if (cleaned) {
+        // Stale user was removed, retry signup
+        const { data: retryData, error: retryError } =
+          await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              data: { full_name: fullName },
+            },
+          });
+
+        if (retryError) return { error: retryError };
+
+        // Overwrite authData for the rest of the flow
+        Object.assign(authData, retryData);
+      } else {
+        // User still has a profile - truly a duplicate
+        return {
+          error: { message: 'อีเมลนี้ถูกใช้งานแล้ว กรุณาใช้อีเมลอื่น' },
+        };
+      }
+    }
+
     const userId = authData.user?.id;
     if (!userId) return { error: { message: 'ไม่สามารถสร้างบัญชีได้' } };
 

@@ -59,7 +59,7 @@ export default function RegisterScreen() {
     );
 
     if (signUpError) {
-      setError("สมัครสมาชิกไม่สำเร็จ กรุณาลองใหม่");
+      setError(signUpError.message || "สมัครสมาชิกไม่สำเร็จ กรุณาลองใหม่");
     } else {
       Alert.alert('สำเร็จ', 'สมัครสำเร็จแล้ว!', [
         {
