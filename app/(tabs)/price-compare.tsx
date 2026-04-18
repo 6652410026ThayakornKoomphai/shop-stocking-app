@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  ActivityIndicator,
   RefreshControl,
   TouchableOpacity,
 } from 'react-native';
@@ -13,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../lib/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { PriceHistory } from '../../lib/types';
+import { PriceCompareSkeleton } from '../../lib/Skeleton';
 
 function getTrendIcon(trend: string) {
   switch (trend) {
@@ -215,11 +215,7 @@ export default function PriceCompareScreen() {
   }
 
   if (loading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#10B981" />
-      </View>
-    );
+    return <PriceCompareSkeleton count={4} />;
   }
 
   return (

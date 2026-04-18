@@ -17,6 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../lib/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { ShoppingItem, ShoppingList } from '../../lib/types';
+import { ShoppingItemSkeleton } from '../../lib/Skeleton';
 
 // Extracted as a proper component so hooks (useState, useEffect) can be used
 function ShoppingItemCard({
@@ -361,9 +362,17 @@ export default function ListDetailScreen() {
 
   if (loading) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#10B981" />
-      </View>
+      <>
+        <Stack.Screen
+          options={{
+            headerTitle: 'กำลังโหลด...',
+            headerStyle: { backgroundColor: '#0F172A' },
+            headerTintColor: '#F8FAFC',
+            headerTitleStyle: { fontWeight: '700' },
+          }}
+        />
+        <ShoppingItemSkeleton count={5} />
+      </>
     );
   }
 

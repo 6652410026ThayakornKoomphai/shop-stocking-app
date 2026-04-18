@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   Alert,
   ScrollView,
-  ActivityIndicator,
   Share,
 } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
@@ -14,11 +13,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../lib/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { FamilyMember } from '../../lib/types';
+import { MembersSkeleton } from '../../lib/Skeleton';
 
 export default function SettingsScreen() {
   const { profile, family, signOut, refreshFamily } = useAuth();
   const [members, setMembers] = useState<FamilyMember[]>([]);
   const [loading, setLoading] = useState(false);
+  const [membersLoading, setMembersLoading] = useState(true);
   const router = useRouter();
 
   useFocusEffect(
@@ -28,7 +29,11 @@ export default function SettingsScreen() {
   );
 
   async function fetchMembers() {
-    if (!family) return;
+    if (!family) {
+      setMembersLoading(false);
+      return;
+    }
+    setMembersLoading(true);
     const { data } = await supabase
       .from('family_members')
       .select('*, profiles:user_id(full_name, username)')
@@ -36,6 +41,7 @@ export default function SettingsScreen() {
       .order('joined_at', { ascending: true });
 
     if (data) setMembers(data as unknown as FamilyMember[]);
+    setMembersLoading(false);
   }
 
   async function handleShareCode() {
@@ -121,29 +127,33 @@ export default function SettingsScreen() {
           {/* Members List */}
           <View style={styles.membersCard}>
             <Text style={styles.membersTitle}>สมาชิกในครอบครัว</Text>
-            {members.map((member: any, index: number) => (
-              <View
-                key={`${member.family_id}-${member.user_id}`}
-                style={[
-                  styles.memberRow,
-                  index < members.length - 1 && styles.memberRowBorder,
-                ]}
-              >
-                <View style={styles.memberAvatar}>
-                  <Text style={styles.memberAvatarText}>
-                    {member.profiles?.full_name?.[0]?.toUpperCase() || '?'}
-                  </Text>
+            {membersLoading ? (
+              <MembersSkeleton count={3} />
+            ) : (
+              members.map((member: any, index: number) => (
+                <View
+                  key={`${member.family_id}-${member.user_id}`}
+                  style={[
+                    styles.memberRow,
+                    index < members.length - 1 && styles.memberRowBorder,
+                  ]}
+                >
+                  <View style={styles.memberAvatar}>
+                    <Text style={styles.memberAvatarText}>
+                      {member.profiles?.full_name?.[0]?.toUpperCase() || '?'}
+                    </Text>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.memberName}>
+                      {member.profiles?.full_name || 'ไม่ระบุ'}
+                    </Text>
+                    <Text style={styles.memberRole}>
+                      {member.role === 'admin' ? '👑 แอดมิน' : '👤 สมาชิก'}
+                    </Text>
+                  </View>
                 </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.memberName}>
-                    {member.profiles?.full_name || 'ไม่ระบุ'}
-                  </Text>
-                  <Text style={styles.memberRole}>
-                    {member.role === 'admin' ? '👑 แอดมิน' : '👤 สมาชิก'}
-                  </Text>
-                </View>
-              </View>
-            ))}
+              ))
+            )}
           </View>
         </View>
       ) : (

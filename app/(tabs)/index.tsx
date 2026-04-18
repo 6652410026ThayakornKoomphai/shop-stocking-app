@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../lib/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { ShoppingList } from '../../lib/types';
+import { ShoppingListSkeleton } from '../../lib/Skeleton';
 
 export default function ShoppingListsScreen() {
   const { family } = useAuth();
@@ -194,8 +195,10 @@ export default function ShoppingListsScreen() {
 
   if (loading) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#10B981" />
+      <View style={styles.container}>
+        <View style={styles.listContainer}>
+          <ShoppingListSkeleton count={4} />
+        </View>
       </View>
     );
   }
